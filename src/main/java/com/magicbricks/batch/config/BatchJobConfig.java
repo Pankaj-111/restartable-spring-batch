@@ -89,8 +89,13 @@ public class BatchJobConfig {
 
 	@Bean
 	public Step masterStep() throws Exception {
-		return stepBuilderFactory.get("masterStep").partitioner(slaveStep().getName(), partitioner()).step(slaveStep())
-				.gridSize(configBean.getPartitions()).taskExecutor(taskExecutor()).build();
+		return stepBuilderFactory
+				.get("masterStep")
+				.partitioner(slaveStep().getName(), partitioner())
+				.step(slaveStep())
+				.gridSize(configBean.getPartitions())
+				.taskExecutor(taskExecutor())
+				.build();
 	}
 
 	@Bean
