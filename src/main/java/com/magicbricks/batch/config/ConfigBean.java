@@ -25,5 +25,11 @@ public class ConfigBean {
 	
 	private String name; 
 	private String id;
+	
+	private String domain;
+	
+	private String kafkaBrokers;
+	private String mailTopic;
+	private String smsTopic;
 
 }
