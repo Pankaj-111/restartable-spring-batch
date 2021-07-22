@@ -26,7 +26,7 @@ public class ConfigBean {
 	private String name; 
 	private String id;
 	
-	private String domain;
+	private String shortUrlDomain;
 	
 	private String kafkaBrokers;
 	private String mailTopic;

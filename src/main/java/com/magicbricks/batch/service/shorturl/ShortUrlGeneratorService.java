@@ -28,7 +28,7 @@ public class ShortUrlGeneratorService implements IShortUrlGeneratorService {
 		final ShortUrlVO shortUrlVo = client.getShortUrl(fullUrl);
 		log.info("creating short url for :{} " + fullUrl);
 		if (shortUrlVo != null) {
-			final String shortUrl = shortUrlVo.getShortUrl().replace("http://mbtrk.co", configBean.getDomain());
+			final String shortUrl = shortUrlVo.getShortUrl().replace("http://mbtrk.co", configBean.getShortUrlDomain());
 			log.info("Full URL : {}, and short url :{}", fullUrl, shortUrl);
 			return shortUrl;
 		}

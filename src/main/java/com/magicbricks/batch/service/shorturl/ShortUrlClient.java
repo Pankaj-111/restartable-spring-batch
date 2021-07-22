@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.magicbricks.batch.model.ShortUrlVO;
 
 
-@FeignClient(value = "shorturl-service", url = "${batch.job.domain}", configuration = FeignRetryForReadConfig.class)
+@FeignClient(value = "shorturl-service", url = "${batch.job.shortUrlDomain}", configuration = FeignRetryForReadConfig.class)
 public interface ShortUrlClient {
 	@GetMapping(path = "/mbtrk/shortUrl")
 	public ShortUrlVO getShortUrl(@RequestParam(value = "urlToshort", required = true) String urlToshort);
