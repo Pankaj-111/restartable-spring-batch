@@ -10,3 +10,6 @@
   -  Fiegn client integrated
 - Kafka support
   - Kafka integrated  
+- Spring Data support
+  - Spring Data JPA
+  - Spring Data JDBC
