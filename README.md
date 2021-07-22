@@ -1,5 +1,5 @@
 # Restart-able Spring Batch
-## Fetures
+## Features
 - Restart-able
 - Retryable
 - Skip Function
