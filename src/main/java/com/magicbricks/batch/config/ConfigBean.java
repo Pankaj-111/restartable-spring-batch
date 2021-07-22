@@ -20,6 +20,8 @@ public class ConfigBean {
 	private int maxPoolSize;
 	private int maxQueueCapacity;
 	private int maxSkip;
+	private int fetchSize;
+	private int maxRetry;
 	
 	private String name; 
 	private String id;

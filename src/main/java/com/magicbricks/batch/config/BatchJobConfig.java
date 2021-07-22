@@ -1,7 +1,6 @@
 package com.magicbricks.batch.config;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -11,7 +10,6 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
@@ -22,6 +20,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.magicbricks.batch.exception.MbSkipableException;
+import com.magicbricks.batch.items.writer.MbItemWriter;
+import com.magicbricks.batch.listener.MbRetryListener;
 import com.magicbricks.batch.listener.MbSkipListener;
 import com.magicbricks.batch.mapper.OwnerDataRowMapper;
 import com.magicbricks.batch.model.Tpownerbatchdata;
@@ -42,9 +42,15 @@ public class BatchJobConfig {
 
 	@Autowired
 	private ConfigBean configBean;
-	
+
 	@Autowired
 	private MbSkipListener mbSkipListener;
+
+	@Autowired
+	private MbRetryListener retryListener;
+	
+	@Autowired
+	private MbItemWriter itemWriter;
 
 	@Bean
 	public ColumnRangePartitioner partitioner() {
@@ -63,7 +69,7 @@ public class BatchJobConfig {
 		log.info("reading {} to {}", minValue, maxValue);
 		final JdbcPagingItemReader<Tpownerbatchdata> reader = new JdbcPagingItemReader<>();
 		reader.setDataSource(this.dataSource);
-		reader.setFetchSize(1000);
+		reader.setFetchSize(configBean.getFetchSize());
 		reader.setRowMapper(new OwnerDataRowMapper());
 
 		final MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
@@ -83,12 +89,8 @@ public class BatchJobConfig {
 
 	@Bean
 	public Step masterStep() throws Exception {
-		return stepBuilderFactory.get("masterStep")
-				.partitioner(slaveStep().getName(), partitioner())
-				.step(slaveStep())
-				.gridSize(configBean.getPartitions())
-				.taskExecutor(taskExecutor())
-				.build();
+		return stepBuilderFactory.get("masterStep").partitioner(slaveStep().getName(), partitioner()).step(slaveStep())
+				.gridSize(configBean.getPartitions()).taskExecutor(taskExecutor()).build();
 	}
 
 	@Bean
@@ -101,22 +103,6 @@ public class BatchJobConfig {
 		return pool;
 	}
 
-	@Bean
-	public ItemWriter<Tpownerbatchdata> itemWriter() {
-		return new ItemWriter<Tpownerbatchdata>() {
-			@Override
-			public void write(List<? extends Tpownerbatchdata> items) throws Exception {
-				items.forEach(e -> {
-					if (e.getId().intValue() == 91127 || e.getId().intValue() == 91129
-							|| e.getId().intValue() == 91147) {
-						Throwable exc = new RuntimeException("Throwing exc");
-						throw new MbSkipableException("Testing skip", exc);
-					}
-					log.info("Writing Data {}", e.getId());
-				});
-			}
-		};
-	}
 
 	@Bean
 	public Step slaveStep() {
@@ -124,8 +110,11 @@ public class BatchJobConfig {
 				.get("slaveStep")
 				.<Tpownerbatchdata, Tpownerbatchdata>chunk(1)
 				.reader(pagingItemReader(null, null))
-				.writer(itemWriter())
+				.writer(itemWriter)
 				.faultTolerant()
+				.retry(MbSkipableException.class)
+				.retryLimit(configBean.getMaxRetry())
+				.listener(retryListener)
 				.skip(MbSkipableException.class)
 				.skipLimit(configBean.getMaxSkip())
 				.listener(mbSkipListener)

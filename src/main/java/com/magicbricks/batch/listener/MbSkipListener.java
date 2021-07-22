@@ -11,17 +11,16 @@ public class MbSkipListener implements SkipListener<Object, Object> {
 
 	@Override
 	public void onSkipInRead(Throwable t) {
-		log.info("Skipin on read :{}", t);
+		log.info("Skiping on read :{}", t);
 	}
 
 	@Override
 	public void onSkipInWrite(Object item, Throwable t) {
-		log.info("Skipin on writer :{}", item);
+		log.info("Skiping on writer :{}", item);
 	}
 
 	@Override
 	public void onSkipInProcess(Object item, Throwable t) {
-		log.info("Skipin on process :{}", item);
+		log.info("Skiping on process :{}", item);
 	}
-
 }
