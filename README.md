@@ -4,6 +4,9 @@
   - Restart-able
   - Retryable
   - Skip Function
-- Multithreaded
-- Fiegn client integrated
-- Kafka integrated
+- Scalable
+  - Multithreaded
+- API calling support
+  -  Fiegn client integrated
+- Kafka support
+  - Kafka integrated  
