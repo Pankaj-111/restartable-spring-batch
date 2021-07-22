@@ -4,5 +4,5 @@
 - Retryable
 - Skip Function
 - Multithreaded
-- Fiegn client
+- Fiegn client integrated
 - Kafka integrated
