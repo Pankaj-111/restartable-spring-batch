@@ -1,6 +1,7 @@
 # Restart-able Spring Batch
+The batch can be used as a template which has some inherent features in it. The most important features are below.
 ## Features
-- **Fault tolerant**
+- **Fault tolerant**: The batch is fault tolerant at a certain level the level can be cofigured. the fault tolerance can be achieved by configuring points below.
   - **Restart-able**
   - **Retryable**
   - **Skip Function**
