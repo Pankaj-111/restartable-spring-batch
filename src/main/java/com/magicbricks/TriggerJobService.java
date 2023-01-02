@@ -12,6 +12,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -28,6 +29,9 @@ public class TriggerJobService {
 
 	@Autowired
 	private ConfigBean configBean;
+	
+	@Value("${batch.job.name}")
+	private String batchName;
 
 	public void runJob(final Job job) throws JobExecutionAlreadyRunningException, JobRestartException,
 			JobInstanceAlreadyCompleteException, JobParametersInvalidException {
@@ -45,7 +49,9 @@ public class TriggerJobService {
 		}
 
 		final Calendar cal = Calendar.getInstance();
-		final StringBuilder key = new StringBuilder(formatValue(cal.get(Calendar.DATE)));
+		final StringBuilder key = new StringBuilder(batchName);
+		key.append("-");
+		key.append(formatValue(cal.get(Calendar.DATE)));
 		key.append(formatValue(cal.get(Calendar.MONTH) + 1));
 		key.append(formatValue(cal.get(Calendar.YEAR)));
 		log.info("No parameters provided using the parameter {}", key);
