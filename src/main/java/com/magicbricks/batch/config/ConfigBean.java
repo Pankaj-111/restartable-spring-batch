@@ -31,5 +31,7 @@ public class ConfigBean {
 	private String kafkaBrokers;
 	private String mailTopic;
 	private String smsTopic;
+	
+	private int chunkSize;
 
 }

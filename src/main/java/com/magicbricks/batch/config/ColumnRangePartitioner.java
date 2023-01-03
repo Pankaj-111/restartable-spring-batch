@@ -20,8 +20,8 @@ public class ColumnRangePartitioner implements Partitioner {
 
 	@Override
 	public Map<String, ExecutionContext> partition(int gridSize) {
-		int min = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table, Integer.class);
-		int max = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table, Integer.class);
+		int min = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table+" where "+column+"!=2120", Integer.class);
+		int max = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table+" where "+column+"!=2120", Integer.class);
 		int targetSize = (max - min) / gridSize + 1;
 		final Map<String, ExecutionContext> result = new HashMap<String, ExecutionContext>();
 		int number = 0;

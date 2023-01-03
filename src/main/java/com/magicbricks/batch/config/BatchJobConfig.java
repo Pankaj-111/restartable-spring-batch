@@ -10,6 +10,8 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.partition.PartitionHandler;
+import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
@@ -20,7 +22,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.magicbricks.batch.exception.MbSkipableException;
+import com.magicbricks.batch.items.processor.MbItemProcessor;
 import com.magicbricks.batch.items.writer.MbItemWriter;
+import com.magicbricks.batch.listener.MbChunkListener;
 import com.magicbricks.batch.listener.MbRetryListener;
 import com.magicbricks.batch.listener.MbSkipListener;
 import com.magicbricks.batch.mapper.OwnerDataRowMapper;
@@ -51,6 +55,12 @@ public class BatchJobConfig {
 	
 	@Autowired
 	private MbItemWriter itemWriter;
+	
+	@Autowired
+	private MbChunkListener chunkListener;
+	
+	@Autowired
+	private MbItemProcessor itemProcessor;
 
 	@Bean
 	public ColumnRangePartitioner partitioner() {
@@ -77,7 +87,7 @@ public class BatchJobConfig {
 		queryProvider.setSelectClause(selectClause);
 		queryProvider.setFromClause("from Tpownerbatchdata o,TPUBI u");
 		final String whereClause = "where obdrfnum >= " + minValue + " and obdrfnum < " + maxValue
-				+ " and o.oid=u.ubirfnum";
+				+ " and o.oid=u.ubirfnum and o.obdrfnum!=2120";
 		queryProvider.setWhereClause(whereClause);
 
 		final Map<String, Order> sortKeys = new HashMap<>(1);
@@ -93,9 +103,21 @@ public class BatchJobConfig {
 				.get("masterStep")
 				.partitioner(slaveStep().getName(), partitioner())
 				.step(slaveStep())
-				.gridSize(configBean.getPartitions())
-				.taskExecutor(taskExecutor())
+//				.gridSize(configBean.getPartitions())
+				.partitionHandler(masterSlaveHandler())
+//				.taskExecutor(taskExecutor())
 				.build();
+	}
+	
+	
+	@Bean
+	public PartitionHandler masterSlaveHandler() throws Exception {
+		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
+		handler.setGridSize(configBean.getPartitions());
+		handler.setTaskExecutor(taskExecutor());
+		handler.setStep(slaveStep());
+		handler.afterPropertiesSet();
+		return handler;
 	}
 
 	@Bean
@@ -103,8 +125,10 @@ public class BatchJobConfig {
 		final ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
 		pool.setCorePoolSize(configBean.getMaxworker());
 		pool.setQueueCapacity(configBean.getMaxQueueCapacity());
-		pool.setMaxPoolSize(configBean.getMaxPoolSize());
+//		pool.setMaxPoolSize(configBean.getMaxPoolSize());
 		pool.setThreadNamePrefix("TH-");
+		pool.afterPropertiesSet();
+		pool.setDaemon(true);
 		return pool;
 	}
 
@@ -113,11 +137,13 @@ public class BatchJobConfig {
 	public Step slaveStep() {
 		return stepBuilderFactory
 				.get("slaveStep")
-				.<Tpownerbatchdata, Tpownerbatchdata>chunk(1)
+				.<Tpownerbatchdata, Tpownerbatchdata>chunk(configBean.getChunkSize())
 				.reader(pagingItemReader(null, null))
+				.processor(itemProcessor)
 				.writer(itemWriter)
 				.faultTolerant()
 				.retry(MbSkipableException.class)
+				.listener(chunkListener)
 				.retryLimit(configBean.getMaxRetry())
 				.listener(retryListener)
 				.skip(MbSkipableException.class)

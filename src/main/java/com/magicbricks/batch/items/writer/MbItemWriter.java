@@ -19,15 +19,17 @@ public class MbItemWriter implements ItemWriter<Tpownerbatchdata> {
 	@Override
 	public void write(List<? extends Tpownerbatchdata> items) throws Exception {
 		for (Tpownerbatchdata e : items) {
-			log.info("Writing Data item {}", e.getId());
-			if (e.getId().intValue() == 91127 || e.getId().intValue() == 91129 || e.getId().intValue() == 91147) {
-				Throwable exc = new RuntimeException("Throwing exc");
-				throw new MbSkipableException("Testing skip", exc);
-			}
-			if (e.getId().intValue() == 91151 || e.getId().intValue() == 91049 || e.getId().intValue() == 91261) {
-				Throwable exc = new RuntimeException("Throwing Ret Exc for :");
-				throw new MbSkipableException("Testing Retry for id " + e.getId(), exc);
-			}
+			log.info("Writing Data item {}, Thread :{}", e.getId(), Thread.currentThread());
+//			if (e.getId().intValue() == 21203697 || e.getId().intValue() == 21203699
+//					|| e.getId().intValue() == 21203745) {
+//				Throwable exc = new RuntimeException("Throwing exc");
+//				throw new MbSkipableException("Testing skip", exc);
+//			}
+//			if (e.getId().intValue() == 21206835 || e.getId().intValue() == 21203723
+//					|| e.getId().intValue() == 21203725) {
+//				Throwable exc = new RuntimeException("Throwing Ret Exc for :");
+//				throw new MbSkipableException("Testing Retry for id " + e.getId(), exc);
+//			}
 		}
 	}
 
