@@ -1,14 +1,15 @@
 package com.magicbricks.batch.service.shorturl;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
-import com.magicbricks.batch.config.ConfigBean;
-import com.magicbricks.batch.model.ShortUrlVO;
+import com.magicbricks.rest.client.TinyUrlGenerator;
+import com.magicbricks.rest.client.exceptions.MbClientException;
+import com.magicbricks.rest.client.model.ShortUrlDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,19 +19,15 @@ import lombok.extern.slf4j.Slf4j;
 public class ShortUrlGeneratorService implements IShortUrlGeneratorService {
 
 	@Autowired
-	private ConfigBean configBean;
-
-	@Autowired
-	private ShortUrlClient client;
+	private TinyUrlGenerator tinyUrlGenerator;
 
 	@Override
-	public String getShortUrl(String fullUrl) throws UnsupportedEncodingException {
-		final ShortUrlVO shortUrlVo = client.getShortUrl(fullUrl);
+	public String getShortUrl(String fullUrl) throws MbClientException, IOException {
+		final ShortUrlDto shortUrlDto = tinyUrlGenerator.getShortUrl(fullUrl);
 		log.info("creating short url for :{} " + fullUrl);
-		if (shortUrlVo != null) {
-			final String shortUrl = shortUrlVo.getShortUrl().replace("http://mbtrk.co", configBean.getShortUrlDomain());
-			log.info("Full URL : {}, and short url :{}", fullUrl, shortUrl);
-			return shortUrl;
+		if (shortUrlDto != null) {
+			log.info("Full URL : {}, and short url :{}", fullUrl, shortUrlDto.getShortUrl());
+			return shortUrlDto.getShortUrl();
 		}
 		return null;
 	}
